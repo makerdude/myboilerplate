@@ -13,6 +13,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { SignOutButton } from "@/components/sign-out-button"
 
 export default function Page() {
   return (
