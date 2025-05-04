@@ -5,9 +5,9 @@ import {
   Bell,
   ChevronsUpDown,
   CreditCard,
-  LogOut,
   Sparkles,
 } from "lucide-react"
+import { useCallback, memo } from "react"
 
 import {
   Avatar,
@@ -30,24 +30,34 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { signOut } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}) {
+function NavUserSkeleton() {
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <div className="flex items-center gap-2 px-2 py-1.5">
+          <Skeleton className="h-8 w-8 rounded-lg" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+        </div>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
+}
+
+function NavUserContent() {
+  const { data: session, status } = useSession()
   const { isMobile } = useSidebar()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
-  async function handleSignOut() {
+  const handleSignOut = useCallback(async () => {
     try {
       setIsLoading(true)
       await signOut({ callbackUrl: "/login" })
@@ -56,7 +66,18 @@ export function NavUser({
     } finally {
       setIsLoading(false)
     }
+  }, [])
+
+  if (status === "loading") {
+    return <NavUserSkeleton />
   }
+
+  if (!session?.user) {
+    return null
+  }
+
+  const { name, email, image } = session.user
+  const userInitial = name?.charAt(0) || "U"
 
   return (
     <SidebarMenu>
@@ -66,16 +87,19 @@ export function NavUser({
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              aria-label="User menu"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarImage src={image || undefined} alt={name || "User"} />
+                <AvatarFallback className="rounded-lg">
+                  {userInitial}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-medium">{name}</span>
+                <span className="truncate text-xs">{email}</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronsUpDown className="ml-auto size-4" aria-hidden="true" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -83,43 +107,50 @@ export function NavUser({
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
+            aria-label="User menu options"
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarImage src={image || undefined} alt={name || "User"} />
+                  <AvatarFallback className="rounded-lg">
+                    {userInitial}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-medium">{name}</span>
+                  <span className="truncate text-xs">{email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <Sparkles />
+                <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
                 Upgrade to Pro
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <BadgeCheck />
+                <BadgeCheck className="mr-2 h-4 w-4" aria-hidden="true" />
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <CreditCard />
+                <CreditCard className="mr-2 h-4 w-4" aria-hidden="true" />
                 Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Bell />
+                <Bell className="mr-2 h-4 w-4" aria-hidden="true" />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut} disabled={isLoading}>
+            <DropdownMenuItem 
+              onClick={handleSignOut} 
+              disabled={isLoading}
+              aria-label={isLoading ? "Signing out..." : "Sign out"}
+            >
               {isLoading ? "Signing out..." : "Sign out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -128,3 +159,5 @@ export function NavUser({
     </SidebarMenu>
   )
 }
+
+export const NavUser = memo(NavUserContent)
