@@ -53,7 +53,6 @@ export default async function DashboardPage() {
               <p className="text-sm text-muted-foreground">
                 Welcome, {session.user?.name || session.user?.email}
               </p>
-              <SignOutButton />
             </div>
           </div>
         </header>

@@ -29,6 +29,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
+import { signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export function NavUser({
   user,
@@ -40,6 +44,19 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
+  async function handleSignOut() {
+    try {
+      setIsLoading(true)
+      await signOut({ callbackUrl: "/login" })
+    } catch (error) {
+      console.error("Sign out error:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -102,9 +119,8 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
+            <DropdownMenuItem onClick={handleSignOut} disabled={isLoading}>
+              {isLoading ? "Signing out..." : "Sign out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
