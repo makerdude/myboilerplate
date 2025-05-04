@@ -34,3 +34,17 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+   ```mermaid
+   flowchart TD
+       A[User requests a page] --> B{Is it a static file or API route?}
+       B -- Yes --> C[Allow request]
+       B -- No --> D[Run middleware (src/middleware.ts)]
+       D --> E{Is user authenticated?}
+       E -- No --> F{Is it the login page?}
+       F -- Yes --> G[Allow request]
+       F -- No --> H[Redirect to /login?from=original]
+       E -- Yes --> I{Is it the login page?}
+       I -- Yes --> J[Redirect to /dashboard]
+       I -- No --> K[Allow request]
+   
